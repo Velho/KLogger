@@ -73,19 +73,21 @@ class Logger extends AbstractLogger
      * Class constructor
      *
      * @param string  $logDirectory       File path to the logging directory
+     * @param string  $filename  The filename of the log
      * @param integer $logLevelThreshold  The LogLevel Threshold
      * @return void
      */
-    public function __construct($logDirectory, $logLevelThreshold = LogLevel::DEBUG)
+    public function __construct($logDirectory, $filename='log', $logLevelThreshold = LogLevel::DEBUG )
     {
         $this->logLevelThreshold = $logLevelThreshold;
+        //$this->logLevelThreshold = LogLevel::DEBUG;
 
         $logDirectory = rtrim($logDirectory, '\\/');
         if (! file_exists($logDirectory)) {
             mkdir($logDirectory, $this->defaultPermissions, true);
         }
 
-        $this->logFilePath = $logDirectory.DIRECTORY_SEPARATOR.'log_'.date('Y-m-d').'.txt';
+        $this->logFilePath = $logDirectory.DIRECTORY_SEPARATOR.$filename.'_'.date('Y-m').'.log';
         if (file_exists($this->logFilePath) && !is_writable($this->logFilePath)) {
             throw new RuntimeException('The file could not be written to. Check that appropriate permissions have been set.');
         }
@@ -139,7 +141,7 @@ class Logger extends AbstractLogger
         if ($this->logLevels[$this->logLevelThreshold] < $this->logLevels[$level]) {
             return;
         }
-        $message = $this->formatMessage($level, $message, $context);        
+        $message = $this->formatMessage($level, $message, $context);
         $this->write($message);
     }
 
@@ -169,10 +171,14 @@ class Logger extends AbstractLogger
     private function formatMessage($level, $message, $context)
     {
         $level = strtoupper($level);
+				$o = new \stdClass();
+				$o->t = $this->getTimestamp();
+				$o->l = $level;
+				$o->m = $message;
         if (! empty($context)) {
-            $message .= PHP_EOL.$this->indent($this->contextToString($context));
+            $o->c = $context;
         }
-        return "[{$this->getTimestamp()}] [{$level}] {$message}".PHP_EOL;
+        return json_encode( $o ) . PHP_EOL;
     }
 
     /**
