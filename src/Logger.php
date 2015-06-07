@@ -294,7 +294,7 @@ class Logger extends AbstractLogger
         $o->function = $info['function'];
         $o->class = $info['class'];
         $o->time = $this->getTimestamp();
-		$o->level = $level;
+        $o->level = $level;
         $o->msg = $message;
 
         if (! empty($context)) {
