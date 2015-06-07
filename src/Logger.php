@@ -98,6 +98,11 @@ class Logger extends AbstractLogger
     private $defaultPermissions = 0777;
 
     /**
+     * Flag to control if logging to one file or not.
+     * @var boolean
+     */
+    private $oneLog;
+    /**
      * Class constructor
      *
      * @param string $logDirectory      File path to the logging directory
@@ -212,10 +217,12 @@ class Logger extends AbstractLogger
      */
     public function log($level, $message, array $context = array())
     {
+        $debug_info = debug_backtrace();
+
         if ($this->logLevels[$this->logLevelThreshold] < $this->logLevels[$level]) {
             return;
         }
-        $message = $this->formatMessage($level, $message, $context);
+        $message = $this->formatMessage($level, $message, $context, $this->getDebugInfo($debug_info));
         $this->write($message);
     }
 
@@ -240,6 +247,16 @@ class Logger extends AbstractLogger
             }
         }
     }
+
+    public function getDebugInfo($dbg)
+    {
+        return array(
+            'file' => $dbg[1]['file'],
+            'function' => $dbg[1]['function'],
+            'class' => $dbg[1]['class']
+        );
+    }
+
 
     /**
      * Get the file path that the log is currently writing to
@@ -269,13 +286,17 @@ class Logger extends AbstractLogger
      * @param  array  $context The context
      * @return string
      */
-    private function formatMessage($level, $message, $context)
+    private function formatMessage($level, $message, $context, array $info = array())
     {
-        $level = strtoupper($level);
-				$o = new \stdClass();
-				$o->time = $this->getTimestamp();
-				$o->level = $level;
-				$o->msg = $message;
+        $level = strtoupper($level); 
+        $o = new \stdClass();
+        $o->file = $info['file'];
+        $o->function = $info['function'];
+        $o->class = $info['class'];
+        $o->time = $this->getTimestamp();
+		$o->level = $level;
+        $o->msg = $message;
+
         if (! empty($context)) {
             $o->context = $context;
         }
