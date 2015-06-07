@@ -103,13 +103,17 @@ class Logger extends AbstractLogger
      * @param string $logDirectory      File path to the logging directory
      * @param string $logLevelThreshold The LogLevel Threshold
      * @param array  $options
+     * @param boolean $oneLog   Controls if user wants to log into one file.
      *
      * @internal param string $logFilePrefix The prefix for the log file name
      * @internal param string $logFileExt The extension for the log file
      */
-    public function __construct($logDirectory, $filename = 'log', $logLevelThreshold = LogLevel::DEBUG)
+    public function __construct($logDirectory, $filename = 'log', $logLevelThreshold = LogLevel::DEBUG, $oneLog = true)
     {
-        $options = array('filename' => $filename);
+        if($oneLog)
+            $options = array('filename' => 'log'); // One log file.
+        else
+            $options = array('filename' => $filename);
 
         $this->logLevelThreshold = $logLevelThreshold;
         $this->options = array_merge($this->options, $options);
@@ -269,11 +273,11 @@ class Logger extends AbstractLogger
     {
         $level = strtoupper($level);
 				$o = new \stdClass();
-				$o->t = $this->getTimestamp();
-				$o->l = $level;
-				$o->m = $message;
+				$o->time = $this->getTimestamp();
+				$o->level = $level;
+				$o->msg = $message;
         if (! empty($context)) {
-            $o->c = $context;
+            $o->context = $context;
         }
         return json_encode( $o ) . PHP_EOL;
     }
