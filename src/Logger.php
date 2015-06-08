@@ -321,6 +321,8 @@ class Logger extends AbstractLogger
      * Loops over logLevels array and picks correct
      * string for $level as integer, but if $level equals
      * the key(string) return the key.
+     * Data is saved in logLevels array as array($str => $int).
+     * That's why the naming of variables.
      *
      * @param mixed $level
      * @return string
