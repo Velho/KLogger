@@ -42,7 +42,8 @@ class Logger extends AbstractLogger
         'dateFormat' => 'Y-m-d G:i:s.u',
         'filename' => false,
         'flushFrequency' => false,
-        'prefix' => 'log_'
+        'prefix' => 'log_',
+        'oneLog' => true,
     );
 
     /**
@@ -98,28 +99,17 @@ class Logger extends AbstractLogger
     private $defaultPermissions = 0777;
 
     /**
-     * Flag to control if logging to one file or not.
-     * @var boolean
-     */
-    private $oneLog;
-    /**
      * Class constructor
      *
      * @param string $logDirectory      File path to the logging directory
      * @param string $logLevelThreshold The LogLevel Threshold
-     * @param array  $options
-     * @param boolean $oneLog   Controls if user wants to log into one file.
      *
      * @internal param string $logFilePrefix The prefix for the log file name
      * @internal param string $logFileExt The extension for the log file
      */
-    public function __construct($logDirectory, $filename = 'log', $logLevelThreshold = LogLevel::DEBUG, $oneLog = true)
+    public function __construct($logDirectory, $filename = 'log', $logLevelThreshold = LogLevel::DEBUG, array $options = array())
     {
-        if($oneLog)
-            $options = array('filename' => 'log'); // One log file.
-        else
-            $options = array('filename' => $filename);
-
+        $options['filename'] = $filename;
         $this->logLevelThreshold = $logLevelThreshold;
         $this->options = array_merge($this->options, $options);
 
@@ -155,7 +145,7 @@ class Logger extends AbstractLogger
      * @param string $logDirectory
      */
     public function setLogFilePath($logDirectory) {
-        if ($this->options['filename']) {
+        if ($this->options['filename'] && $this->options['oneLog'] !== true) {
             if (strpos($this->options['filename'], '.log') !== false || strpos($this->options['filename'], '.txt') !== false) {
                 $this->logFilePath = $logDirectory.DIRECTORY_SEPARATOR.$this->options['filename'];
             }
@@ -163,7 +153,7 @@ class Logger extends AbstractLogger
                 $this->logFilePath = $logDirectory.DIRECTORY_SEPARATOR.$this->options['filename'].'.'.$this->options['extension'];
             }
         } else {
-            $this->logFilePath = $logDirectory.DIRECTORY_SEPARATOR.$this->options['prefix'].date('Y-m-d').'.'.$this->options['extension'];
+            $this->logFilePath = $logDirectory.DIRECTORY_SEPARATOR."log"; // One log filename, maybe add option for this?
         }
     }
 
@@ -173,6 +163,7 @@ class Logger extends AbstractLogger
      * @internal param resource $fileHandle
      */
     public function setFileHandle($writeMode) {
+        var_dump($this->logFilePath);
         $this->fileHandle = fopen($this->logFilePath, $writeMode);
     }
 
@@ -295,7 +286,7 @@ class Logger extends AbstractLogger
         $o->class = $info['class'];
         $o->time = $this->getTimestamp();
         $o->level = $level;
-        $o->msg = $message;
+        $o->msg = "[". $this->options['filename'] . "] " . $message;
 
         if (! empty($context)) {
             $o->context = $context;
@@ -318,6 +309,17 @@ class Logger extends AbstractLogger
         $date = new DateTime(date('Y-m-d H:i:s.'.$micro, $originalTime));
 
         return $date->format($this->options['dateFormat']);
+    }
+
+    /**
+     * Gets boolean flag if logging is written to single log file.
+     * Default : True
+     *
+     * @return boolean
+     */
+    private function getOneLog()
+    {
+        return $this->options['oneLog'];
     }
 
     /**
