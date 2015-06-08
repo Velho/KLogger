@@ -201,12 +201,12 @@ class Logger extends AbstractLogger
     /**
      * Logs with an arbitrary level.
      *
-     * @param mixed $level
      * @param string $message
+     * @param mixed $level
      * @param array $context
      * @return null
      */
-    public function log($level, $message, array $context = array())
+    public function log($message, $level, array $context = array())
     {
         $debug_info = debug_backtrace();
 
