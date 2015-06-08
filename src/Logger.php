@@ -285,6 +285,7 @@ class Logger extends AbstractLogger
      */
     private function formatMessage($level, $message, $context, array $info = array())
     {
+        echo $level . PHP_EOL;
         $level = strtoupper($level); 
         $o = new \stdClass();
         $o->file = $info['file'];
@@ -329,8 +330,8 @@ class Logger extends AbstractLogger
      */
     private function getLevel($level)
     {
-        foreach($this->logLevels as $str => $int) {
-            if($level === $int || $str === $level)
+        foreach($this->logLevels as $str => $int) { 
+            if($level == $int || $str == $level)
                 return $str;
         }
     }
