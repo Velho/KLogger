@@ -163,7 +163,6 @@ class Logger extends AbstractLogger
      * @internal param resource $fileHandle
      */
     public function setFileHandle($writeMode) {
-        var_dump($this->logFilePath);
         $this->fileHandle = fopen($this->logFilePath, $writeMode);
     }
 
@@ -206,12 +205,12 @@ class Logger extends AbstractLogger
      * @param array $context
      * @return null
      */
-    public function log($message, $level, array $context = array())
+    public function log($level, $message, array $context = array())
     {
-        if(!$this->checkLevel($level)) {
-            $temp = $level;
-            $level = $message;
-            $message = $temp;
+        if(is_int($message)) {
+            $temp = $message;
+            $message = $level;
+            $level = $temp;
         }
 
         $debug_info = debug_backtrace();
@@ -219,6 +218,7 @@ class Logger extends AbstractLogger
         if ($this->logLevels[$this->logLevelThreshold] < $this->logLevels[$level]) {
             return;
         }
+
         $message = $this->formatMessage($level, $message, $context, $this->getDebugInfo($debug_info));
         $this->write($message);
     }
@@ -291,7 +291,7 @@ class Logger extends AbstractLogger
         $o->function = $info['function'];
         $o->class = $info['class'];
         $o->time = $this->getTimestamp();
-        $o->level = $level;
+        $o->level = $this->getLevel($level); // Print level as string.
         $o->msg = "[". $this->options['filename'] . "] " . $message;
 
         if (! empty($context)) {
@@ -318,20 +318,19 @@ class Logger extends AbstractLogger
     }
 
     /**
-     * Verifies if level is correct.
-     * Nasty hack to fight legacy code
+     * Loops over logLevels array and picks correct
+     * string for $level as integer, but if $level equals
+     * the key(string) return the key.
      *
-     * @param string $level
-     * @return bool
+     * @param mixed $level
+     * @return string
      */
-    private function checkLevel($level)
+    private function getLevel($level)
     {
-        foreach($this->logLevels as $key => $value) {
-            if($key === $level)
-                return true;
+        foreach($this->logLevels as $str => $int) {
+            if($level === $int || $str === $level)
+                return $str;
         }
-
-        return false;
     }
 
     /**
