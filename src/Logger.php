@@ -208,6 +208,12 @@ class Logger extends AbstractLogger
      */
     public function log($message, $level, array $context = array())
     {
+        if(!$this->checkLevel($level)) {
+            $temp = $level;
+            $level = $message;
+            $message = $temp;
+        }
+
         $debug_info = debug_backtrace();
 
         if ($this->logLevels[$this->logLevelThreshold] < $this->logLevels[$level]) {
@@ -309,6 +315,23 @@ class Logger extends AbstractLogger
         $date = new DateTime(date('Y-m-d H:i:s.'.$micro, $originalTime));
 
         return $date->format($this->options['dateFormat']);
+    }
+
+    /**
+     * Verifies if level is correct.
+     * Nasty hack to fight legacy code
+     *
+     * @param string $level
+     * @return bool
+     */
+    private function checkLevel($level)
+    {
+        foreach($this->logLevels as $key => $value) {
+            if($key === $level)
+                return true;
+        }
+
+        return false;
     }
 
     /**
